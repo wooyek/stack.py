@@ -1,11 +1,12 @@
-from urllib import urlencode
-from urllib2 import urlopen, HTTPError
-from urlparse import parse_qs
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import HTTPError
+from urllib.parse import parse_qs
 from zlib import decompress, error, MAX_WBITS
 
-from request import Request
-from site import Site
-from url import APIError, URL
+from .request import Request
+from .site import Site
+from .url import APIError, URL
 
 ## @cond META
 ## Meta class making it possible to call global methods as attributes.
@@ -37,10 +38,8 @@ class MetaAPI(type):
 ## @endcond
 
 ## Represents an entry point to the global network-wide methods.
-class API:
+class API(metaclass=MetaAPI):
     
-    # The metaclass used for providing static attributes
-    __metaclass__ = MetaAPI
     
     ## The API key used for all requests.
     #
@@ -86,7 +85,7 @@ class API:
                                                'code':          code,
                                                'redirect_uri':  redirect_uri,})).read()
             return parse_qs(raw_data)['access_token'][0]
-        except HTTPError, e:
+        except HTTPError as e:
             try:
                 json_data = decompress(e.read(), 16 + MAX_WBITS).decode('UTF-8')
                 data = loads(json_data)

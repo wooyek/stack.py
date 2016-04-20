@@ -1,4 +1,4 @@
-import url
+
 
 ## Represents a filter for controlling the data returned in a response.
 #
@@ -38,24 +38,30 @@ class Filter:
     ## Adds the specified items to the filter's include list.
     # @param includes either a single item or list/tuple of items
     def add_includes(self, includes):
-        if isinstance(includes, basestring): self._includes.append(includes)
-        else:                                self._includes.extend(includes)
+        if isinstance(includes, str):
+            self._includes.append(includes)
+        else:
+            self._includes.extend(includes)
         self._dirty = True
         return self
     
     ## Adds the specified items to the filter's exclude list.
     # @param excludes either a single item or a list/tuple of items
     def add_excludes(self, excludes):
-        if isinstance(excludes, basestring): self._excludes.append(excludes)
-        else:                                self._excludes.extend(excludes)
+        if isinstance(excludes, str):
+            self._excludes.append(excludes)
+        else:
+            self._excludes.extend(excludes)
         self._dirty = True
         return self
     
     ## Creates the filter.
     def create(self):
-        f_url = url.URL().switch_to_post()
+        import url
+        f_url = url.URL()
         f_url.add_method('filters').add_method('create').add_parameter('base', self._filter_id)
-        f_url.add_parameter('include', ';'.join(self._includes)).add_parameter('exclude', ';'.join(self._excludes))
+        f_url.set_post_data({'include': ';'.join(self._includes),
+                             'exclude': ';'.join(self._excludes),})
         self._filter_id = f_url.fetch(True)['items'][0]['filter']
         self._dirty = False
         return self

@@ -60,7 +60,7 @@ class SQLiteDatabase:
         # Remove any existing entries and enter the new one
         self._connection.execute('DELETE FROM cache WHERE url = ?', (url,))
         self._connection.execute('INSERT INTO cache (url, data, expires) VALUES (?,?,?)',
-                                 [unicode(url), unicode(data), int(time()) + ttl,])
+                                 [str(url), str(data), int(time()) + ttl,])
     
     ## Purges entries from the cache.
     # @param clear_all whether to purge all entries from the cache instead of only expired ones
@@ -75,7 +75,7 @@ class SQLiteDatabase:
     # @return the corresponding data or None if unavailable
     def retrieve_from_cache(self, url):
         c = self._connection.execute('SELECT data FROM cache WHERE url = ? AND expires >= ?',
-                                     [unicode(url), int(time()),])
+                                     [str(url), int(time()),])
         row = c.fetchone()
         # If the row was found, return the first item
         if not row is None:

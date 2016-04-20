@@ -1,4 +1,4 @@
-from request import Request
+from .request import Request
 
 ## Represents an entry point into any Stack Exchange site.
 #
@@ -33,7 +33,7 @@ class Site:
     # @param data the domain name of the site or data returned from the /sites method
     # @param ignored this parameter is ignored
     def __init__(self, data, ignored=None):
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             self._domain = data
             self._data = None
         else:
@@ -44,10 +44,6 @@ class Site:
     # @param method the name of the method
     # @return a Request object
     def __getattr__(self, method):
-        # We make a singular exception here for suggested edits since it
-        # uses a hyphen instead of an underscore.
-        if method == 'suggested_edits':
-            method = 'suggested-edits'
         if not method in self._methods:
             raise KeyError('The "%s" method does not exist.' % method)
         return Request(self._domain, method)
@@ -63,7 +59,7 @@ class Site:
     ## Returns an internal representation of the current instance.
     # @return the internal representation
     def __repr__(self):
-        return '<Site>' if self._data is None else "<Site '%s'>" % self._data['name']
+        return '<Site>' if self._data is None else "<Site '%s'>" % self._data.name
     
     ## Returns a string representation of the site.
     # @return the human-readable name of the site

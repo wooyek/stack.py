@@ -1,8 +1,9 @@
 from copy import deepcopy
+from urllib.parse import quote
 
-from item import Item
-from types import METHOD_TO_TYPE_MAPPING
-from url import URL
+from .item import Item
+from .types import METHOD_TO_TYPE_MAPPING
+from .url import URL
 
 ## Represents a request for API data.
 #
@@ -20,7 +21,7 @@ class Request:
                 'associated',
                 'badges',
                 'comments',
-                'de-authenticate',
+                'de_authenticate',
                 'delete',
                 'edit',
                 'elected',
@@ -34,34 +35,34 @@ class Request:
                 'linked',
                 'mentioned',
                 'merges',
-                'moderator-only',
+                'moderator_only',
                 'moderators',
                 'name',
-                'no-answers',
+                'no_answers',
                 'notifications',
                 'privileges',
                 'questions',
                 'recipients',
                 'related',
                 'reputation',
-                'reputation-history',
+                'reputation_history',
                 'required',
                 'revisions',
-                'suggested-edits',
+                'suggested_edits',
                 'synonyms',
                 'tags',
                 'timeline',
-                'top-answer-tags',
-                'top-answerers',
-                'top-answers',
-                'top-askers',
-                'top-question-tags',
-                'top-questions',
+                'top_answer_tags',
+                'top_answerers',
+                'top_answers',
+                'top_askers',
+                'top_question_tags',
+                'top_questions',
                 'unaccepted',
                 'unanswered',
                 'unread',
                 'wikis',
-                'write-permissions',]
+                'write_permissions',]
     
     # The presence of any of these methods will force all parameters to be
     # passed as POST parameters instead of with GET.
@@ -74,7 +75,7 @@ class Request:
     # @param method a method name to append to the URL
     # @param response_type an optional type to use for returning the response
     def __init__(self, url=None, method=None, response_type=Item):
-        self._url = URL(url) if isinstance(url, basestring) else url
+        self._url = URL(url) if isinstance(url, str) else url
         if not method is None:
             self._url.add_method(method)
         self._response_type = response_type
@@ -83,7 +84,20 @@ class Request:
     ## Provides a way to specify IDs.
     # @param items either a single item or a list/tuple of items
     def __call__(self, items):
-        self._url.add_method(self._string_list(items), True)
+        # This inline method converts any type to a string
+        def item_str(item):
+            return str(item.id() if issubclass(item.__class__, Item) else item)
+        # Ensure that items is iterable - if not, put it in a list
+        try:
+            # Trigger the TypeError exception if this object is a string
+            # so that it isn't treated like a list
+            if isinstance(items, str):
+                raise TypeError
+            iter(items)
+        except (KeyError, TypeError):
+            items = [items,]
+        # Now we have a list of 'things' - convert them to a list of strings and join them
+        self._url.add_method(';'.join(quote(item_str(i), '/') for i in items), True)
         return self
     
     ## Appends the specified item to the appropriate part of the URL.
@@ -103,9 +117,9 @@ class Request:
         else:
             # This is a neat trick - we return a local function that will
             # finish setting the parameter in the URL once the user provides
-            # the value for the specified parameter (which may be a list).
+            # the value for the specified parameter.
             def set_parameter(value):
-                url.add_parameter(item, self._string_list(value))
+                url.add_parameter(item, value)
                 return Request(url)
             return set_parameter
     
@@ -147,19 +161,3 @@ class Request:
                 item_type = self._data['type'] if 'type' in self._data else ''
             self._data['items'] = [self._response_type(i, item_type) for i in self._data['items']]
         return self._data
-    
-    ## Converts the provided item or list of items into a string.
-    # @param items the list of items to join
-    # @return a string with the items joined together
-    def _string_list(self, items):
-        # Ensure that items is iterable - if not, put it in a list
-        try:
-            # Trigger the TypeError exception if this object is a string
-            # so that it isn't treated like a list
-            if isinstance(items, basestring):
-                raise TypeError
-            iter(items)
-        except (KeyError, TypeError):
-            items = [items,]
-        return ';'.join([str(i.id() if issubclass(i.__class__, Item) else i) for i in items])
-

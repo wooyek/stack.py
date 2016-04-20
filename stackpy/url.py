@@ -3,7 +3,6 @@ from urllib import quote, urlencode
 from urllib2 import urlopen, HTTPError
 from zlib import decompress, MAX_WBITS
 
-import api
 from database import Database
 from filter import Filter
 
@@ -41,6 +40,7 @@ class URL:
         self._base_methods = []
         self._parameters   = {}
         # Add two default parameters to accompany each request
+        import api
         self._parameters['key']    = api.API.key
         self._parameters['filter'] = Filter.default
         if not domain is None:

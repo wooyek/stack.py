@@ -17,7 +17,7 @@
 #   The documentation is generated directly from the code so what you see in the
 #   documentation directly corresponds with the current code.
 
-from api import API
-from site import Site
-from filter import Filter
-from url import APIError
+from .api import API
+from .site import Site
+from .filter import Filter
+from .url import APIError

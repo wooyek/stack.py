@@ -1,7 +1,7 @@
 from datetime import datetime
 from string import capwords
 
-from types import TYPE_INFORMATION
+from .types import TYPE_INFORMATION
 
 ## A common wrapper for all returned items.
 #
@@ -29,19 +29,14 @@ class Item:
     def __getattr__(self, index):
         # Catch any KeyErrors and rethrow them as AttributeErrors
         try:
-            # If the attribute ends with '_timestamp' then remove that part and
-            # return a timestamp instead of a datetime object
-            return_timestamp = False
-            if index.endswith('_timestamp'):
-                index = index[:-10]
-                return_timestamp = True
+            # First determine if the requested member is a timestamp
             if index in self._type_field('date_fields', []):
-                return self._data[index] if return_timestamp else datetime.fromtimestamp(self._data[index])
+                return datetime.fromtimestamp(self._data[index])
             # Either return the requested item or it if is another type, return a new Item instance
             if index in self._type_field('type_map', {}):
                 return Item(self._data[index], self._type_info['type_map'][index])
             return self._data[index]
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
     
     ## Returns an internal representation of the response.
