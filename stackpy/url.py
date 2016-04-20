@@ -1,10 +1,11 @@
 from json import loads
-from urllib import quote, urlencode
-from urllib2 import urlopen, HTTPError
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import HTTPError
 from zlib import decompress, MAX_WBITS
 
-from database import Database
-from filter import Filter
+from .database import Database
+from .filter import Filter
 
 ## Represents an error that occurred while accessing the API.
 class APIError(Exception):
@@ -40,7 +41,7 @@ class URL:
         self._base_methods = []
         self._parameters   = {}
         # Add two default parameters to accompany each request
-        import api
+        from . import api
         self._parameters['key']    = api.API.key
         self._parameters['filter'] = Filter.default
         if not domain is None:
@@ -78,7 +79,7 @@ class URL:
         try:
             post_data = urlencode(self._parameters) if self._method == 'POST' else None
             raw_data = urlopen(url, data=post_data).read()
-        except HTTPError, e:
+        except HTTPError as e:
             raw_data = e.read()
         json_data = decompress(raw_data, 16 + MAX_WBITS).decode('UTF-8')
         data = loads(json_data)
@@ -103,7 +104,7 @@ class URL:
     # parameter indicates whether this particular part of the method is
     # constant or if it represents an ID or tag or some other variant.
     def add_method(self, method, is_variable=False):
-        self._methods.append(quote(method, ''))
+        self._methods.append(method)
         self._base_methods.append('*' if is_variable else method)
         return self
     
